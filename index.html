@@ -42,13 +42,14 @@
                 <h2>Results:</h2>
                 <span data-bind="foreach: results" >
                     <div class="panel panel-default">
-                        <div class="panel-heading" data-bind="click: alert('hello'), text: $data"></div>
+                        <div class="panel-heading" data-bind="click: $parent.setFocus">
+                            <h3 class="panel-title" data-bind="text: name"></h3>
+                        </div>
+                        <div class="panel-body" data-bind="text: formatted_address"></div>
                     </div>
-                    <p></p>
                 </span>
                 <!-- item list -->
                 
-                <ul id="results">
                     <!--<li>-->
                     <!--    <div class="panel panel-default">-->
                     <!--        <div class="panel-heading"><a href="">Item heading</a>-->
@@ -69,7 +70,6 @@
 
                     <!--    <hr>-->
                     <!--</li>-->
-                </ul>
             </div>
             <div class="col-xs-4">
                 <!--map-canvas will be postioned here-->

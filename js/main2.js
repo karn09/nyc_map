@@ -3,8 +3,10 @@ var ViewModel = {
     results: ko.observableArray(),
     points: ko.observableArray(),
     placeIds: [],
-    locs: ko.observableArray()
+    markers: []
 };
+
+var initial = []
 
 ViewModel.enterSearch = function(d, e) {
     e.keyCode === 13 && this.search();
@@ -20,17 +22,17 @@ ViewModel.searchService = function(keyword) {
         bounds: NYCbounds,
         types: ['restaurant']
     });
-
+    if (self.results().length = 5) {
+        self.results([])
+        self.clearMarkers()
+    }
+    if (map.zoom = 18) {
+        map.setZoom(12)
+    }
     service.getPlacePredictions({
         input: keyword
     }, function(predictions) {
         predictions.forEach(function(p) {
-            //console.log(p)
-            // var info = placeService.getDetails(place_id, function(info) {
-            //     console.log(info)
-            // })
-//            self.placeIds.push(p.place_id);
-            //console.log(p.place_id)
             self.getPlaceDetails(p.place_id)
         });
     });
@@ -40,38 +42,46 @@ ViewModel.getPlaceDetails = function(id) {
     var self = this;
     var mapId = document.getElementById('hold-it'); // have to create an arbitrary element to create PlacesService obj
     var service = new google.maps.places.PlacesService(mapId);
-    service.getDetails({ placeId: id }, function(info) {
-      self.results.push(info.name)
-      console.log(info.geometry.location)
-      self.locs.push(info.geometry.location)
+    service.getDetails({
+        placeId: id
+    }, function(info) {
+        self.results.push(info)
+        self.addMarker(info.geometry.location)
     });
-    
+
+}
+// focus map on selected item
+ViewModel.setFocus = function (obj) {
+    var location = obj.geometry.location
+    var latLng = new google.maps.LatLng(location.A, location.F);
+    map.panTo(latLng);
+    if (map.zoom = 18) {
+        map.setZoom(12)
+    }
+    setTimeout("map.setZoom(18)", 1000);
+}
+
+ViewModel.clearMarkers = function() {
+    var self = this
+    for (var i = 0; i < self.markers.length; i++) {
+        self.markers[i].setMap(null)
+    }
+    self.markers = [];
 }
 
 ViewModel.addMarker = function(loc) {
-             
-        console.log(loc)
-        markers = [];
-        var bounds = new google.maps.LatLngBounds();
-        // for (var i = 0, place; place = places[i]; i++) {
-        //     var image = {
-        //         size: new google.maps.Size(71, 71),
-        //         origin: new google.maps.Point(0, 0),
-        //         anchor: new google.maps.Point(17, 34),
-        //         scaledSize: new google.maps.Size(25, 25)
-        //     };
+    var self = this;
+    var bounds = new google.maps.LatLngBounds();
+    var marker = new google.maps.Marker({
+        position: {
+            lat: loc.A,
+            lng: loc.F
+        },
+        map: map
+    });
+    self.markers.push(marker)
 
-            // Create a marker for each place.
-            var marker = new google.maps.Marker({
-                icon: image,
-                position: loc
-            });
-
-            // markers.push(marker);
-
-            // bounds.extend(loc);
-        }
-//}
+}
 
 ViewModel.search = function() {
     this.searchService(this.keyword()) // add an event listener here, that onClick 
@@ -88,7 +98,7 @@ var MapViewModel = {
             mapTypeId: google.maps.MapTypeId.ROADMAP,
             types: ['restaurant']
         };
-        map: new google.maps.Map(mapId, mapOptions); 
+        map = new google.maps.Map(mapId, mapOptions);
         // try abstracting into a prototype
         // maybelook into DI
         // need to figure out a way to change the center, by overriding the current center in default options.
