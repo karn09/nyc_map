@@ -1,12 +1,8 @@
-var ViewModel = {
+ var ViewModel = {
     keyword: ko.observable(''),
     results: ko.observableArray(),
-    points: ko.observableArray(),
-    placeIds: [],
     markers: []
 };
-
-var initial = []
 
 ViewModel.enterSearch = function(d, e) {
     e.keyCode === 13 && this.search();
@@ -60,7 +56,7 @@ ViewModel.setFocus = function (obj) {
     }
     setTimeout("map.setZoom(18)", 1000);
 }
-
+// clear all markers from map
 ViewModel.clearMarkers = function() {
     var self = this
     for (var i = 0; i < self.markers.length; i++) {
@@ -115,6 +111,46 @@ var MapViewModel = {
     }
 
 }
+
+var API_ViewModel = function() {
+    var self = this;
+    var baseUrl = "https://data.cityofnewyork.us/resource/xx67-kt59.json?"
+
+    self.searchResults = ko.observableArray()
+
+    var searchQuery = function(query) {
+        var re = new RegExp('^(\+0?1\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$');
+        if (re.test(query)) {
+            query.replace('(','');          
+            var queryBuilder = this.baseUrl + "$q=" + query;
+            return this.getSodaData(queryBuilder);
+        }
+    }
+    // query SODA by using phone number
+    var getSodaData = function(query) {
+        // Make the API call to Soda
+        // scope 'this' for use inside inner functions
+        $.getJSON(query, function(result) {}).done(function(json) {
+
+            json.forEach(function(obj) {
+                //console.log(obj)
+                self.searchResults.push({
+                    'name': obj.dba,
+                    'grade': obj.grade,
+                    'violations': obj.violation_description
+                });
+            })
+        }).fail(function(err) {
+            console.log(err)
+        })
+    }
+
+    var searchSodaDataByName = function(street, name) {
+        return this.getSodaData(Model.baseUrl, street, name)
+    }
+
+}
+
 
 //window.onload(ko.applyBindings(ViewModel))
 
