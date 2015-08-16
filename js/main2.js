@@ -41,12 +41,16 @@
      service.getDetails({
          placeId: id
      }, function(info) {
-         self.mapResults[info.formatted_phone_number] = info;
-         //self.sodaResults['test'] =
+        console.log(info)
+         //self.mapResults[info.formatted_phone_number] = info;
+         self.results().push(info)
          self.searchSoda(info);
          self.addMarker(info.geometry.location)
      });
  };
+ ViewModel.viewResults = function() {
+
+ }
  // focus map on selected item
  ViewModel.setFocus = function(obj) {
      var location = obj.geometry.location;
@@ -58,7 +62,7 @@
      setTimeout("map.setZoom(18)", 1000);
  };
  // clear all markers from map
- ViewModel.clearMarkers = function() {===
+ ViewModel.clearMarkers = function() {
      var self = this;
      for (var i = 0; i < self.markers.length; i++) {
          self.markers[i].setMap(null)
@@ -72,8 +76,8 @@
      var bounds = new google.maps.LatLngBounds();
      var marker = new google.maps.Marker({
          position: {
-             lat: loc.A,
-             lng: loc.F
+             lat: loc.G,
+             lng: loc.K
          },
          map: map
      });
