@@ -1,8 +1,17 @@
+/* global google */
+/* global ko */
+
+
 function appViewModel() {
     var map, infowindow, nyc
     this.keyword = ko.observable('');
-    this.results = ko.observableArray([]);
-    this.temp = ko.observableArray([1,2,3])
+    this.resultsList = ko.observableArray();
+
+    this.setFocus = function() {
+        console.log('test')
+    }
+ 
+
     this.enterSearch = function(d, e) {
         e.keyCode === 13 && this.search();
         return true
@@ -22,10 +31,10 @@ function appViewModel() {
             bounds: NYCbounds,
             types: ['restaurant']
         });
-        if (self.results().length == 5) {
-            self.results([]);
-            // self.clearMarkers()
-        }
+        // if (self.results().length == 5) {
+        //     self.results([]);
+        //     // self.clearMarkers()
+        // }
         if (map.zoom == 18) {
             map.setZoom(12)
         }
@@ -47,11 +56,17 @@ function appViewModel() {
             placeId: id
         }, function(info) {        
             //self.mapResults[info.formatted_phone_number] = info;
-            self.results().push(info)
+            self.resultsList.push(info)
             //console.log(self.results())
             //self.searchSoda(info);
             //self.addMarker(info.geometry.location)
         });
+    };
+    this.clearFilters = function() {
+        var ele = document.getElementsByName("rating");
+        for(var i=0; i<ele.length; i++) {
+            ele[i].checked = false;
+        }
     };
 
     function initializeMap() {
@@ -60,10 +75,11 @@ function appViewModel() {
             center: nyc,
             zoom: 12,
             mapTypeId: google.maps.MapTypeId.ROADMAP,
-            types: ['restaurant']
+            types: ['restaurant'],
+            mapTypeControl: false
         });
         var input = document.getElementById('pac-input');
-        var results = document.getElementById('results-list');
+        //var results = document.getElementById('results-list');
         map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
         //map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(results);
         infowindow = new google.maps.InfoWindow({
