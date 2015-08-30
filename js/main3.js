@@ -4,24 +4,22 @@
 
 function AppViewModel() {
     var map, infowindow, nyc;
-    var self = this;
     var markers = [];
-
     this.keyword = ko.observable('');
     this.resultsList = ko.observableArray();
+    this.info = [];
+    var self = this;
 
     this.setFocus = function (obj) {
-        console.log(obj);
         var location = obj.geometry.location;
         var latLng = new google.maps.LatLng(location.G, location.K);
         map.panTo(latLng);
-        if (map.zoom = 18) {
+        if (map.zoom >= 16) {
             map.setZoom(12)
         }
-        setTimeout("map.setZoom(18)", 1000);
+        map.setZoom(18);
+        //        setTimeout("map.setZoom(18)", 1000);
     };
-
-
 
     this.enterSearch = function (d, e) {
         e.keyCode === 13 && this.search();
@@ -34,57 +32,68 @@ function AppViewModel() {
 
     // filter results list by rating
     this.filterBy = function (val) {
-        console.log(val)
+        
     }
 
     this.searchService = function (keyword) {
-        var self = this;
+        //var self = this;
         var NYCbounds = new google.maps.LatLngBounds(
             new google.maps.LatLng(40.70213498801132, -74.02151065429689),
             new google.maps.LatLng(40.852167627881336, -73.92823830859368)
             );
         var service = new google.maps.places.AutocompleteService({
+            input: keyword,
             location: NYCbounds,
+            bounds: NYCbounds,
             radius: 7000,
-            types: ['restaurant']
+            types: ['restaurant'],
+            componentRestrictions: { country: 'us' }
         });
-        // if (self.results().length == 5) {
-        //     self.results([]);
-        //     // self.clearMarkers()
-        // }
         if (map.zoom == 18) {
             map.setZoom(12)
         }
         service.getPlacePredictions({
-            input: keyword,
-            // location: NYCbounds,
-            // radius: 7000,
-            types: ['restaurant']
-        }, function (predictions) {
-            predictions.forEach(function (p) {
-                self.getPlaceDetails(p.place_id)
-            });
-        });
+            input: keyword
+        }, self.retrievePredictions)
+    };
+
+    this.retrievePredictions = function (predictions, status) {
+        //var self = this;
+        predictions.forEach(function (p) {
+            self.getPlaceDetails(p.place_id)
+        })
+        // on first run, below lines do not run
+        self.info.forEach(function (d) {
+            console.log(d)
+        })
     };
 
     this.getPlaceDetails = function (id) {
-        console.log(id)
-        var self = this;
-        var mapId = document.getElementById('predictions'); // have to create an arbitrary element to create PlacesService obj
-        var service = new google.maps.places.PlacesService(mapId);
+        var service = new google.maps.places.PlacesService(map);
         service.getDetails({
             placeId: id
-        }, function (info) {        
-            //self.mapResults[info.formatted_phone_number] = info;
-            self.resultsList.push(info)
-            //console.log(self.results())
-            //self.searchSoda(info);
-            self.addMarker(info.geometry.location)
+        }, function (info, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                var phone = self.formatQueryForSODA(info.formatted_phone_number);
+                var promise = self.getSodaData(phone, info);
+              
+                    promise.success(function (data) {
+                        if (data.length > 0 && data[0]['grade'] !== undefined) {
+                            info['grade'] = data[0]['grade'];
+                        } else if (data.length > 0 && data[1]['grade'] !== undefined) {
+                            info['grade'] = data[1]['grade'];  
+                        } else {
+                            info['grade'] = 'No rating found.';
+                        }
+                        self.resultsList.push(info);
+                    })
+                  
+            }
         });
     };
 
     this.addMarker = function (loc) {
-        var bounds = new google.maps.LatLngBounds();
+        //var bounds = new google.maps.LatLngBounds();
         var marker = new google.maps.Marker({
             position: {
                 lat: loc.G,
@@ -128,45 +137,35 @@ function AppViewModel() {
 
     };
     this.formatQueryForSODA = function (query) {
-        var baseUrl = "https://data.cityofnewyork.us/resource/9w7m-hzhe.json?";
-        if (query.formatted_phone_number) {
-            var phone = query.formatted_phone_number;
+        if (query) {
+            var phone = query;
             var re = new RegExp(/^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/g);
             if (re.test(phone)) {
                 var nonDigits = new RegExp(/\D/g);
                 phone = phone.replace(nonDigits, '');
-                var queryBuilder = baseUrl + "phone=" + phone;
-                this.getSodaData(queryBuilder, query.formatted_phone_number)
+                return phone;
             }
-        } else {
-            console.log("Query is not valid, please use telephone number for location")
-        }
+        } else
+            return null;
     };
 
-    this.getSodaData = function (query, phone) {
+    this.getSodaData = function (phone, info) {
         // Make the API call to Soda
         // scope 'this' for use inside inner functions
-        var self = this;
-        $.when($.ajax({
+        var baseUrl = "https://data.cityofnewyork.us/resource/9w7m-hzhe.json?";
+        var query = baseUrl + "phone=" + phone;
+        return $.ajax({
             url: query,
             dataType: 'json',
-            success: function () {
-                console.log("Done!")
-            },
             error: function () {
                 console.log("Issue loading data")
+            },
+            complete: function (data, status) {
+                console.log(status);
             }
-        })).done(function (data) {
-            if (data != undefined) {
-                self.sodaResults[phone] = data
-            } else {
-                self.sodaResults[phone] = 'Cannot find number';
-            }
-        })
+        });
     };
-
-
     initializeMap();
-}
+};
 
 ko.applyBindings(new AppViewModel());
