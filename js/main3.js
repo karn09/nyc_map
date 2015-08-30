@@ -36,7 +36,6 @@ function AppViewModel() {
     }
 
     this.searchService = function (keyword) {
-        //var self = this;
         var NYCbounds = new google.maps.LatLngBounds(
             new google.maps.LatLng(40.70213498801132, -74.02151065429689),
             new google.maps.LatLng(40.852167627881336, -73.92823830859368)
@@ -59,12 +58,11 @@ function AppViewModel() {
 
     this.retrievePredictions = function (predictions, status) {
         //var self = this;
+        if (predictions === null) {
+            return "Nothing found!"; // -> pop up window instead to try another search
+        }
         predictions.forEach(function (p) {
             self.getPlaceDetails(p.place_id)
-        })
-        // on first run, below lines do not run
-        self.info.forEach(function (d) {
-            console.log(d)
         })
     };
 
@@ -85,6 +83,7 @@ function AppViewModel() {
                         } else {
                             info['grade'] = 'No rating found.';
                         }
+                        self.addMarker(info);
                         self.resultsList.push(info);
                     })
                   
@@ -92,16 +91,14 @@ function AppViewModel() {
         });
     };
 
-    this.addMarker = function (loc) {
+    this.addMarker = function (place) {
         //var bounds = new google.maps.LatLngBounds();
         var marker = new google.maps.Marker({
-            position: {
-                lat: loc.G,
-                lng: loc.K
-            },
-            map: map
+            map: map,
+            position: place.geometry.location
         });
-        var contentString = 'Test';
+        
+        var contentString = place.name;
         var infowindow = new google.maps.InfoWindow({
             content: contentString
         });
@@ -109,13 +106,6 @@ function AppViewModel() {
             infowindow.open(map, marker);
         });
         markers.push(marker)
-    };
-
-    this.clearFilters = function () {
-        var ele = document.getElementsByName("rating");
-        for (var i = 0; i < ele.length; i++) {
-            ele[i].checked = false;
-        }
     };
 
     function initializeMap() {
