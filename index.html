@@ -14,22 +14,8 @@
 	<input class="controls" id="pac-input" data-bind="textInput: keyword, event: {keypress: enterSearch}" class="form-control"
 	type="text" placeholder="Start Searching Here!"></input>
 
-	<div id="results-box">
-
-		<!--<div class="btn-group btn-group-justified" role="group">
-			<div class="btn-group" role="group">
-				<button type="button" class="btn btn-primary" name="A" data-bind="click: filterBy.bind($data, 'A')">A</button>
-			</div>
-			<div class="btn-group" role="group">
-				<button type="button" class="btn btn-primary" data-bind="click: filterBy.bind($data, 'B')">B</button>
-			</div>
-			<div class="btn-group" role="group">
-				<button type="button" class="btn btn-primary" data-bind="click: filterBy.bind($data, 'C')">C</button>
-			</div>
-			<div class="btn-group" role="group">
-				<button type="button" class="btn btn-primary" data-bind="click: filterBy.bind($data, 'D')">D</button>
-			</div>
-		</div>-->
+	<div id="results-box" style="display: none" data-bind="visible: true">
+		
 		<div class="btn-group justified" role="group">
 			<div data-bind="foreach: filters">
 				<input type="button" class="btn btn-primary" data-bind="click: $parent.setActiveFilter, value: grade" />
@@ -42,7 +28,7 @@
 				<div class="panel-heading" data-bind="click: $parent.setFocus">
 					<p data-bind="text: name"></p>
 					<p data-bind="text: formatted_address"></p>
-					<p>Food Grade: <span data-bind="text: grade"></span></p>
+					<p>Food Inspection Result: <span data-bind="text: grade"></span></p>
 				</div>
 			</li>
 		</ul>
@@ -55,7 +41,7 @@
 	<script type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places"></script>
-	<script type="text/javascript" src="js/main3.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
 	<!-- end initialize scripts -->
 </body>
 
