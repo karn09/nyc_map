@@ -15,8 +15,8 @@
 	type="text" placeholder="Start Searching Here!"></input>
 
 	<div id="results-box">
-		
-		<div class="btn-group btn-group-justified" role="group">
+
+		<!--<div class="btn-group btn-group-justified" role="group">
 			<div class="btn-group" role="group">
 				<button type="button" class="btn btn-primary" name="A" data-bind="click: filterBy.bind($data, 'A')">A</button>
 			</div>
@@ -29,9 +29,15 @@
 			<div class="btn-group" role="group">
 				<button type="button" class="btn btn-primary" data-bind="click: filterBy.bind($data, 'D')">D</button>
 			</div>
+		</div>-->
+		<div class="btn-group justified" role="group">
+			<div data-bind="foreach: filters">
+				<input type="button" class="btn btn-primary" data-bind="click: $parent.setActiveFilter, value: grade" />
+			</div>
+
 		</div>
-		
-		<ul class="results-list" data-bind="foreach: resultsList">
+
+		<ul class="results-list" data-bind="foreach: filteredResults">
 			<li>
 				<div class="panel-heading" data-bind="click: $parent.setFocus">
 					<p data-bind="text: name"></p>

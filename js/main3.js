@@ -90,6 +90,31 @@ function AppViewModel() {
             }
         });
     };
+    
+    this.filters = [
+        {grade:'Show All', filter: null},
+        {grade:'A', filter: function(item){return item.grade == 'A';}},
+        {grade:'B', filter: function(item){return item.grade == 'B';}},
+        {grade:'C', filter: function(item){return item.grade == 'C';}},
+        {grade:'D', filter: function(item){return item.grade == 'D';}}
+    ];
+    
+    this.activeFilter = ko.observable(self.filters[0].filter); //set a default filter    
+    
+    this.setActiveFilter = function(model,event){
+        console.log(self.activeFilter(model.filter));
+        self.activeFilter(model.filter);
+    };
+    
+    this.filteredResults = ko.computed(function(){
+        var result;
+        if(self.activeFilter()){
+            result = ko.utils.arrayFilter(self.resultsList(), self.activeFilter());
+        } else {
+            result = self.resultsList();
+        }
+        return result;
+    });
 
     this.addMarker = function (place) {
         //var bounds = new google.maps.LatLngBounds();
