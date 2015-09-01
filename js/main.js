@@ -107,6 +107,7 @@ function AppViewModel() {
         });
     };
     
+    // list of filters for filtering out inspection grades. 
     this.filters = [
         {grade:'Show All', filter: null},
         {grade:'A', filter: function(item){return item.grade == 'A';}},
@@ -120,13 +121,15 @@ function AppViewModel() {
         }
     ];
     
+    // set active filter on observableArray. Default is null.
     this.activeFilter = ko.observable(self.filters[0].filter); //set a default filter    
     
+    // update active filter by setting this.activeFilter with filter requested.
     this.setActiveFilter = function(model,event){
-        console.log(self.activeFilter(model.filter));
         self.activeFilter(model.filter);
     };
     
+    // compuete resultsList with filtered information. 
     this.filteredResults = ko.computed(function(){
         var result;
         if(self.activeFilter()){
@@ -137,6 +140,8 @@ function AppViewModel() {
         return result;
     });
 
+    // addMarker, called when updating predictions list. Will draw a marker on locations found. Clicking on Marker
+    // will show name of restaurant in map infoWindow.
     this.addMarker = function (place) {
         var marker = new google.maps.Marker({
             map: map,
