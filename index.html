@@ -6,6 +6,7 @@
 	<link rel="stylesheet" href="css/normalize.css">
 	<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
 	<link rel="stylesheet" href="css/main2.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 </head>
 
 <body>
@@ -15,20 +16,21 @@
 	type="text" placeholder="Start Searching Here!"></input>
 
 	<div id="results-box" style="display: none" data-bind="visible: true">
-		
+		<!--<input placeholder="Search…" type="filterSearch" data-bind="value: query, valueUpdate: 'keyup'" autocomplete="off">-->
 		<div class="btn-group justified" role="group">
 			<div data-bind="foreach: filters">
 				<input type="button" class="btn btn-primary" data-bind="click: $parent.setActiveFilter, value: grade" />
 			</div>
 
 		</div>
+		
 
 		<ul class="results-list" data-bind="foreach: filteredResults">
 			<li>
 				<div class="panel-heading" data-bind="click: $parent.setFocus">
 					<p data-bind="text: name"></p>
 					<p data-bind="text: formatted_address"></p>
-					<p>Food Inspection Result: <span data-bind="text: grade"></span></p>
+					<p>Inspection Result: <span data-bind="text: grade"></span></p>
 				</div>
 			</li>
 		</ul>

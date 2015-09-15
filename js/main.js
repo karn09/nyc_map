@@ -9,34 +9,44 @@ function AppViewModel() {
     var markers = [];
     this.keyword = ko.observable('');
     this.resultsList = ko.observableArray();
+    this.filterResults = ko.observableArray();
     this.info = [];
     var self = this;
-
+    
     // setFocus, function called when place location in results list clicked. Will focus map to currently selected item.
     this.setFocus = function (obj) {
         var location = obj.geometry.location;
-        var latLng = new google.maps.LatLng(location.G, location.K);
+        var latLng = new google.maps.LatLng(location.G-.00004, location.K);
         map.panTo(latLng);
         if (map.zoom >= 16) {
-            map.setZoom(12)
-        };
+            map.setZoom(12);
+        }
         map.setZoom(18);
+        toggleBounce(obj.marker);
+        // I'm repeating myself here. TODO: refactor into a single generator function that handles marker objects for cases of clicking on from map and listview.
+        infowindow.setContent('<h4>'+obj.name+'</h4><div><p>'+obj.formatted_address+'</p><p><h5>Rating: </h5>'+obj.rating+'</p><p><h5>Food Grade: </h5>'+obj.grade+'</p></div>');
+        infowindow.open(map, this.marker);
     };
-
+    
+    // take into account various getAnimation status code, and set to bouncing. Otherwise stop bouncing.     
+    function toggleBounce(marker) {
+        if (marker.getAnimation() === undefined || marker.getAnimation() === null || marker.getAnimation() === 1) {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+        } else {
+            marker.setAnimation(null);
+        }
+    }
+    
     // enterSearch, on 'enter' keypress, call this.search with query entered.
     this.enterSearch = function (d, e) {
         e.keyCode === 13 && this.search();
-        return true
+        return true;
     };
     // called from enterSearch, pass keyword to searchService
     this.search = function () {
         this.searchService(this.keyword());
     };
 
-    // filter results list by rating
-    this.filterBy = function (val) {
-        
-    }
     // searchService, initialize AutocompleteService, reset map, and clear results and markers. Call retrievePredictions.
     this.searchService = function (keyword) {
         var NYCbounds = new google.maps.LatLngBounds(
@@ -52,7 +62,7 @@ function AppViewModel() {
             componentRestrictions: { country: 'us' }
         });
         if (map.zoom >= 18) {
-            map.setZoom(12)
+            map.setZoom(12);
         }
         if (self.resultsList().length >= 5) {
             self.resultsList([]);
@@ -60,7 +70,7 @@ function AppViewModel() {
         }
         service.getPlacePredictions({
             input: keyword
-        }, self.retrievePredictions)
+        }, self.retrievePredictions);
     };
     // clear all markers on map
     this.clearMarkers = function() {
@@ -73,11 +83,11 @@ function AppViewModel() {
     // retrieve predictions from Google given query entered. Once 
     this.retrievePredictions = function (predictions, status) {
         //var self = this;
-        if (predictions === null && self.resultsList().length == 0) {
+        if (predictions === null && self.resultsList().length === 0) {
             return "Nothing found!"; // -> pop up window instead to try another search
         } else {
             predictions.forEach(function (p) {
-                self.getPlaceDetails(p.place_id)
+                self.getPlaceDetails(p.place_id);
             });   
         };
     };
@@ -98,7 +108,7 @@ function AppViewModel() {
                         } else if (data.length > 0 && data[1]['grade'] !== undefined) {
                             info['grade'] = data[1]['grade'];  
                         } else {
-                            info['grade'] = 'No rating found.';
+                            info['grade'] = 'No Grade Found.';
                         }
                         self.addMarker(info);
                         self.resultsList.push(info);
@@ -115,8 +125,8 @@ function AppViewModel() {
         {grade:'C', filter: function(item){return item.grade == 'C';}},
         {grade:'Other', filter: function(item) { // doesn't appear to work?
             if (item.grade !== 'A' || item.grade !== 'B' || item.grade !== 'C') {
-                return item.grade
-            };
+                return item.grade;
+            }
            }
         }
     ];
@@ -129,7 +139,7 @@ function AppViewModel() {
         self.activeFilter(model.filter);
     };
     
-    // compuete resultsList with filtered information. 
+    // compute resultsList with filtered information. 
     this.filteredResults = ko.computed(function(){
         var result;
         if(self.activeFilter()){
@@ -143,20 +153,29 @@ function AppViewModel() {
     // addMarker, called when updating predictions list. Will draw a marker on locations found. Clicking on Marker
     // will show name of restaurant in map infoWindow.
     this.addMarker = function (place) {
-        var marker = new google.maps.Marker({
+        place.marker = new google.maps.Marker({
             map: map,
             position: place.geometry.location
         });
         
-        var contentString = place.name;
-        var infowindow = new google.maps.InfoWindow({
-            content: contentString
+        google.maps.event.addListener(place.marker, 'click', function () {
+            infowindow.setContent('<h4>'+place.name+'</h4><div><p>'+place.formatted_address+'</p><p><h5>Rating: </h5>'+place.rating+'</p><p><h5>Food Grade: </h5>'+place.grade+'</p></div>');
+            infowindow.open(map, this);
         });
-        google.maps.event.addListener(marker, 'click', function () {
-            infowindow.open(map, marker);
-        });
-        markers.push(marker)
+        markers.push(place.marker);
+        place.marker.setMap(map);
     };
+    
+    this.filterSearch = function (query) {
+      this.resultsList.removeAll();
+      
+      for (var result in this.resultsList) {
+          if (resultsList[result].name.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
+              this.resultsList.push(resultsList[result]);
+          }
+      }  
+    };
+    
     // initialize display of map, centered on NYC
     function initializeMap() {
         nyc = new google.maps.LatLng(40.777151307946326, -73.97487448144528);
@@ -174,7 +193,7 @@ function AppViewModel() {
             maxWidth: 300
         });
 
-    };
+    }
     
     // formatQueryForSODA, this function formats the search query using the provided phone number from Google prediction
     // service. Using regex, removes characters and properly formats the phone number so it can be later be found via NYC Open Data API.
@@ -204,7 +223,7 @@ function AppViewModel() {
             url: query,
             dataType: 'json',
             error: function () {
-                console.log("Issue loading data")
+                console.log("Issue loading data");
             },
             complete: function (data, status) {
                 console.log(status);
