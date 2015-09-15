@@ -111,7 +111,11 @@ function AppViewModel() {
                             info['grade'] = 'No Grade Found.';
                         }
                         self.addMarker(info);
-                        self.resultsList.push(info);
+                        
+                        // TODO: only push instances where address contains 'New York'
+                        if (info.formatted_address.toLowerCase().indexOf('new york') > 0) {
+                            self.resultsList.push(info);                        
+                        }
                     });
             }
         });
