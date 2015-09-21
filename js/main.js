@@ -135,6 +135,7 @@ function AppViewModel() {
     };
     
     // this computes a new filteredResults list. If no filters currently set, then it will default to resultsList()
+    // method below is slightly re-worked from http://jsfiddle.net/Lzud7fjr/1/
     self.filteredResults = ko.computed(function () {
         var result;
         self.columns = ko.observableArray([{
