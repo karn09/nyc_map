@@ -5,39 +5,48 @@
 	<title></title>
 	<link rel="stylesheet" href="css/normalize.css">
 	<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
-	<link rel="stylesheet" href="css/main2.css">
+	<link rel="stylesheet" href="css/main3.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 </head>
 
 <body>
-	<div id="map-canvas"></div>
 
-	<input class="controls" id="pac-input" data-bind="textInput: keyword, event: {keypress: enterSearch}" class="form-control"
-	type="text" placeholder="Start Searching Here!"></input>
+	<div class="wrap">
 
-	<div id="results-box" style="display: none" data-bind="visible: true">
-		<!--<input placeholder="Search…" type="filterSearch" data-bind="value: query, valueUpdate: 'keyup'" autocomplete="off">-->
-		<div class="btn-group justified" role="group">
-			<div data-bind="foreach: filters">
-				<input type="button" class="btn btn-primary" data-bind="click: $parent.setActiveFilter, value: grade" />
-			</div>
+		<div id="map-canvas"></div>
+		<div class="mobile-container">
 
-		</div>
-		
+			<form id='search-form'>
+				<input class="controls" id="pac-input" data-bind="textInput: keyword, event: {keypress: enterSearch}" class="form-control"
+				type="text" placeholder="Start Searching Here!"></input>
+			</form>
 
-		<ul class="results-list" data-bind="foreach: filteredResults">
-			<li>
-				<div class="panel-heading" data-bind="click: $parent.setFocus">
-					<p data-bind="text: name"></p>
-					<p data-bind="text: formatted_address"></p>
-					<p>Inspection Result: <span data-bind="text: grade"></span></p>
+
+			<aside>
+				<input id="filter" type="checkbox" name="within_results" value="within">Search within results</input>
+				<div id="results-box" data-bind="visible: true">
+					<!--<div class="btn-group justified" role="group">
+						<div data-bind="foreach: filters">
+							<input type="button" class="btn btn-primary" data-bind="click: $parent.setActiveFilter, value: grade" />
+						</div>
+
+					</div>-->
+
+
+					<ul id="list" class="results-list" data-bind="foreach: filteredResults">
+						<li>
+							<div class="corner-info" data-bind="click: $parent.setFocus">
+								<p data-bind="text: name"></p>
+								<p data-bind="text: formatted_address"></p>
+								<p>Inspection Result: <span data-bind="text: grade"></span></p>
+							</div>
+						</li>
+					</ul>
+
 				</div>
-			</li>
-		</ul>
+			</aside>
+		</div>
 	</div>
-
-
-	<div id='predictions'></div>
 	<!-- initialize scripts -->
 	<script type="text/javascript" src="js/knockout-min.js"></script>
 	<script type="text/javascript" src="js/jquery-2.1.3.min.js"></script>

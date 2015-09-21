@@ -15,38 +15,39 @@ function AppViewModel() {
     
     // setFocus, function called when place location in results list clicked. Will focus map to currently selected item.
     this.setFocus = function (obj) {
-        var location = obj.geometry.location;
-        var latLng = new google.maps.LatLng(location.G-.00004, location.K);
-        map.panTo(latLng);
-        if (map.zoom >= 16) {
-            map.setZoom(12);
-        }
-        map.setZoom(18);
-        toggleBounce(obj.marker);
-        // I'm repeating myself here. TODO: refactor into a single generator function that handles marker objects for cases of clicking on from map and listview.
-        infowindow.setContent('<h4>'+obj.name+'</h4><div><p>'+obj.formatted_address+'</p><p><h5>Rating: </h5>'+obj.rating+'</p><p><h5>Food Grade: </h5>'+obj.grade+'</p></div>');
-        infowindow.open(map, this.marker);
+        google.maps.event.trigger(obj.marker, 'click');    
     };
     
     // take into account various getAnimation status code, and set to bouncing. Otherwise stop bouncing.     
     function toggleBounce(marker) {
-        if (marker.getAnimation() === undefined || marker.getAnimation() === null || marker.getAnimation() === 1) {
-            marker.setAnimation(google.maps.Animation.BOUNCE);
-        } else {
+        markers.forEach(function(marker){
             marker.setAnimation(null);
-        }
+        });
+        if (marker.getAnimation() === undefined || marker.getAnimation() === null) {
+            marker.setAnimation(google.maps.Animation.BOUNCE);
+        } 
     }
+    this.infoShow = function(loc) {
+        google.maps.event.trigger(loc.marker, 'click');
+        
+    };
     
     // enterSearch, on 'enter' keypress, call this.search with query entered.
     this.enterSearch = function (d, e) {
         e.keyCode === 13 && this.search();
         return true;
     };
+    
     // called from enterSearch, pass keyword to searchService
     this.search = function () {
-        this.searchService(this.keyword());
+        var checkbox = $('input[type="checkbox"][name="within_results"]');
+        if (checkbox.prop("checked") === true && this.resultsList().length > 0) {
+            this.filterService(this.keyword());
+        } else if (checkbox.prop("checked") === false) {
+            this.searchService(this.keyword());
+        }
     };
-
+    
     // searchService, initialize AutocompleteService, reset map, and clear results and markers. Call retrievePredictions.
     this.searchService = function (keyword) {
         var NYCbounds = new google.maps.LatLngBounds(
@@ -64,7 +65,7 @@ function AppViewModel() {
         if (map.zoom >= 18) {
             map.setZoom(12);
         }
-        if (self.resultsList().length >= 5) {
+        if (self.resultsList().length >= 1) {
             self.resultsList([]);
             self.clearMarkers();
         }
@@ -78,7 +79,7 @@ function AppViewModel() {
             marker.setMap(null);
         });
         markers = [];
-    }
+    };
     
     // retrieve predictions from Google given query entered. Once 
     this.retrievePredictions = function (predictions, status) {
@@ -89,8 +90,9 @@ function AppViewModel() {
             predictions.forEach(function (p) {
                 self.getPlaceDetails(p.place_id);
             });   
-        };
+        }
     };
+    
     // call PlacesServices from Maps API to gather additional formatted information about locations. 
     this.getPlaceDetails = function (id) {
         var service = new google.maps.places.PlacesService(map);
@@ -110,50 +112,58 @@ function AppViewModel() {
                         } else {
                             info['grade'] = 'No Grade Found.';
                         }
-                        self.addMarker(info);
                         
                         // TODO: only push instances where address contains 'New York'
-                        if (info.formatted_address.toLowerCase().indexOf('new york') > 0) {
+                        if (info.formatted_address.toLowerCase().indexOf('ny') > 0) {
                             self.resultsList.push(info);                        
+                            self.addMarker(info);
                         }
+                    });
+                    promise.error(function(data) {
+                        info['grade'] = 'Issue contacting server.';
+                        self.resultsList.push(info);                        
+                        self.addMarker(info);
                     });
             }
         });
     };
-    
-    // list of filters for filtering out inspection grades. 
-    this.filters = [
-        {grade:'Show All', filter: null},
-        {grade:'A', filter: function(item){return item.grade == 'A';}},
-        {grade:'B', filter: function(item){return item.grade == 'B';}},
-        {grade:'C', filter: function(item){return item.grade == 'C';}},
-        {grade:'Other', filter: function(item) { // doesn't appear to work?
-            if (item.grade !== 'A' || item.grade !== 'B' || item.grade !== 'C') {
-                return item.grade;
-            }
-           }
-        }
-    ];
-    
-    // set active filter on observableArray. Default is null.
-    this.activeFilter = ko.observable(self.filters[0].filter); //set a default filter    
-    
-    // update active filter by setting this.activeFilter with filter requested.
-    this.setActiveFilter = function(model,event){
-        self.activeFilter(model.filter);
+            
+    // search through current results, this doesn't actually do anything. this.service() calls this 
+    // if checkbox is selected. 
+    this.filterService = function(keyword) {
+        return ko.observable(keyword);    
     };
     
-    // compute resultsList with filtered information. 
-    this.filteredResults = ko.computed(function(){
+    // this computes a new filteredResults list. If no filters currently set, then it will default to resultsList()
+    self.filteredResults = ko.computed(function () {
         var result;
-        if(self.activeFilter()){
-            result = ko.utils.arrayFilter(self.resultsList(), self.activeFilter());
-        } else {
+        self.columns = ko.observableArray([{
+            value: 'formatted_address'
+        }, {
+                value: 'name'
+            }, {
+                value: 'grade'
+            }]);
+        if (self.keyword().length >= 0 && $('input[type="checkbox"][name="within_results"]').prop("checked") === false) {
             result = self.resultsList();
+        } else if ($('input[type="checkbox"][name="within_results"]').prop("checked") === true) {
+            // set new result based on filtering query. 
+            // TODO: remove map markers dynamically.
+            result = ko.utils.arrayFilter(self.resultsList(), function (item) {
+                var matching = -1;
+                ko.utils.arrayForEach(self.columns(), function (c) {
+                    var val = item[c.value];
+                    if (typeof val === 'number') {
+                        val = val.toString();
+                    }
+                    matching += val.toLowerCase().indexOf(self.keyword().toLowerCase()) + 1;
+                });
+                return matching >= 0;
+            });
         }
         return result;
     });
-
+ 
     // addMarker, called when updating predictions list. Will draw a marker on locations found. Clicking on Marker
     // will show name of restaurant in map infoWindow.
     this.addMarker = function (place) {
@@ -161,25 +171,18 @@ function AppViewModel() {
             map: map,
             position: place.geometry.location
         });
-        
-        google.maps.event.addListener(place.marker, 'click', function () {
-            infowindow.setContent('<h4>'+place.name+'</h4><div><p>'+place.formatted_address+'</p><p><h5>Rating: </h5>'+place.rating+'</p><p><h5>Food Grade: </h5>'+place.grade+'</p></div>');
-            infowindow.open(map, this);
-        });
         markers.push(place.marker);
+        
         place.marker.setMap(map);
+                
+        google.maps.event.addListener(place.marker, 'click', function () {
+            infowindow.setContent('<h4 class="info-window-header">'+place.name+'</h4><div><p>'+place.formatted_address+'</p><p><h5>Rating: </h5>'+place.rating+'</p><p><h5>Food Grade: </h5>'+place.grade+'</p></div>');
+            infowindow.open(map, this);
+            map.panTo(place.marker.position);
+            toggleBounce(place.marker);
+        });
     };
-    
-    this.filterSearch = function (query) {
-      this.resultsList.removeAll();
-      
-      for (var result in this.resultsList) {
-          if (resultsList[result].name.toLowerCase().indexOf(query.toLowerCase()) >= 0) {
-              this.resultsList.push(resultsList[result]);
-          }
-      }  
-    };
-    
+
     // initialize display of map, centered on NYC
     function initializeMap() {
         nyc = new google.maps.LatLng(40.777151307946326, -73.97487448144528);
@@ -191,11 +194,18 @@ function AppViewModel() {
             mapTypeControl: false
         });
         var input = document.getElementById('pac-input');
+      
         map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-        
+       
         infowindow = new google.maps.InfoWindow({
             maxWidth: 300
         });
+        
+        // $(window).resize(function () {
+        //     var h = $(window).height(),
+        //     offsetTop = 0; // Calculate the top offset
+        //     $('#map-canvas').css('height', (h - offsetTop));
+        // }).resize();
 
     }
     
@@ -218,7 +228,7 @@ function AppViewModel() {
     // getSodaData, this function passes to the NYC Open Data API a phone number in order to return food grade info.
     // I chose to use the phone number instead of the address or name because of many variations in formatting and recorded info.
     // The phone number was more constant.
-    this.getSodaData = function (phone, info) {
+    this.getSodaData = function (phone) {
         // Make the API call to Soda
         // scope 'this' for use inside inner functions
         var baseUrl = "https://data.cityofnewyork.us/resource/9w7m-hzhe.json?";
@@ -227,7 +237,7 @@ function AppViewModel() {
             url: query,
             dataType: 'json',
             error: function () {
-                console.log("Issue loading data");
+               return "Issue loading data.";
             },
             complete: function (data, status) {
                 console.log(status);
@@ -237,6 +247,8 @@ function AppViewModel() {
 
     // Initialize map. 
     initializeMap();
-};
+}
+
+
 
 ko.applyBindings(new AppViewModel());

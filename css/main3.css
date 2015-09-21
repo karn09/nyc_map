@@ -1,0 +1,105 @@
+/* border-sizing */
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+/* common elements */
+html, body, .wrap {
+  height: 100%;
+  margin: 0;
+  width: 100%;
+}
+
+
+/* side bar */
+aside {
+  background: rgba(0,0,0,0.75);
+  color: white;
+  margin: 0;
+  padding: 8px;
+  position: absolute;
+  width: 300px;
+}
+
+aside {
+  height: 100%;
+  overflow: auto;
+  top: 0;
+  right: 0;
+}
+
+/* search */
+#pac-input {
+    background-color: #fff;
+    font-family: Roboto;
+    font-size: 15px;
+    font-weight: 300;
+    margin-left: 2%;
+    padding: 0 11px 0 13px;
+    text-overflow: ellipsis;
+    width: 350px;
+    margin-top: 2%;
+}
+
+/* filter button */
+#filter {
+  margin-left: 1%;
+  margin-top: 2%;
+  background-color: white;
+}
+/* list */
+#list {
+  padding: 0;
+}
+
+#list li {
+  font-size: 16px;
+  list-style-type: none;
+  padding: 8px;
+}
+
+#list li:hover {
+  cursor: pointer;
+  color: black;
+  background: #E44E49;
+}
+
+/* map canvas */
+#map-canvas {
+  height: 100%;
+  width: 100%;
+}
+
+.info-window-header {
+  font-weight: bold;
+}
+
+/* info window */
+@media only screen and (max-width: 700px) {
+  #map-canvas, .wrap {
+    position: absolute;
+    left: 0;
+    height: 83%;
+    bottom: 0;
+  }
+  .mobile-container {
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    background: blue;
+    position: fixed;
+    height: 30%;
+    width: 100%;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+  }
+  aside {
+    height: 100%;
+    position: static;
+    left: 0;
+    top: 100px;
+    width: 100%;
+  }
+}
