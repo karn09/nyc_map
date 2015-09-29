@@ -25,12 +25,9 @@ function AppViewModel() {
         });
         if (marker.getAnimation() === undefined || marker.getAnimation() === null) {
             marker.setAnimation(google.maps.Animation.BOUNCE);
+            
         } 
     }
-    this.infoShow = function(loc) {
-        google.maps.event.trigger(loc.marker, 'click');
-        
-    };
     
     // enterSearch, on 'enter' keypress, call this.search with query entered.
     this.enterSearch = function (d, e) {
@@ -54,14 +51,20 @@ function AppViewModel() {
             new google.maps.LatLng(40.70213498801132, -74.02151065429689),
             new google.maps.LatLng(40.852167627881336, -73.92823830859368)
             );
-        var service = new google.maps.places.AutocompleteService({
-            input: keyword,
-            location: NYCbounds,
-            bounds: NYCbounds,
-            radius: 7000,
-            types: ['restaurant'],
-            componentRestrictions: { country: 'us' }
-        });
+            
+            // previously used AutocompleteService, turns out using PlacesService is much better.
+            // PlacesService returns more than 5 results at a time, and can be constrained based on place types.
+        // var service = new google.maps.places.AutocompleteService({
+        //     input: keyword,
+        //     location: NYCbounds,
+        //     bounds: NYCbounds,
+        //     radius: 7000,
+        //     types: ['geocode'],
+        //     componentRestrictions: { country: 'us' }
+        // });
+        
+        var service = new google.maps.places.PlacesService(map);
+        
         if (map.zoom >= 18) {
             map.setZoom(12);
         }
@@ -69,9 +72,15 @@ function AppViewModel() {
             self.resultsList([]);
             self.clearMarkers();
         }
-        service.getPlacePredictions({
-            input: keyword
-        }, self.retrievePredictions);
+        var request = {
+            bounds: NYCbounds,
+            types: ['restaurant', 'cafe'],
+            radius: '200',
+            query: keyword
+        };
+        
+        service.textSearch(request, self.retrievePredictions);
+        
     };
     // clear all markers on map
     this.clearMarkers = function() {
@@ -88,7 +97,10 @@ function AppViewModel() {
             return "Nothing found!"; // -> pop up window instead to try another search
         } else {
             predictions.forEach(function (p) {
-                self.getPlaceDetails(p.place_id);
+                if (p.formatted_address.toLowerCase().indexOf('brooklyn,') > 0 || 
+                p.formatted_address.toLowerCase().indexOf('new york,') > 0) {
+                    self.getPlaceDetails(p.place_id);
+                }
             });   
         }
     };
@@ -113,11 +125,10 @@ function AppViewModel() {
                             info['grade'] = 'No Grade Found.';
                         }
                         
-                        // TODO: only push instances where address contains 'New York'
-                        if (info.formatted_address.toLowerCase().indexOf('ny') > 0) {
-                            self.resultsList.push(info);                        
-                            self.addMarker(info);
-                        }
+                      
+                        console.log(info);
+                        self.resultsList.push(info);                        
+                        self.addMarker(info);
                     });
                     promise.error(function(data) {
                         info['grade'] = 'Issue contacting server.';
@@ -164,7 +175,9 @@ function AppViewModel() {
         }
         return result;
     });
- 
+    this.noResults = function() {
+        
+    }
     // addMarker, called when updating predictions list. Will draw a marker on locations found. Clicking on Marker
     // will show name of restaurant in map infoWindow.
     this.addMarker = function (place) {
@@ -181,6 +194,10 @@ function AppViewModel() {
             infowindow.open(map, this);
             map.panTo(place.marker.position);
             toggleBounce(place.marker);
+        });
+        // add additional listener to infowindow to reset marker animations when window closed.
+        google.maps.event.addListener(infowindow,'closeclick',function(){
+            place.marker.setAnimation(null);
         });
     };
 
@@ -201,13 +218,6 @@ function AppViewModel() {
         infowindow = new google.maps.InfoWindow({
             maxWidth: 300
         });
-        
-        // $(window).resize(function () {
-        //     var h = $(window).height(),
-        //     offsetTop = 0; // Calculate the top offset
-        //     $('#map-canvas').css('height', (h - offsetTop));
-        // }).resize();
-
     }
     
     // formatQueryForSODA, this function formats the search query using the provided phone number from Google prediction
