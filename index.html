@@ -20,8 +20,15 @@
 				<input class="controls" id="pac-input" data-bind="textInput: keyword, event: {keypress: enterSearch}" class="form-control"
 				type="text" placeholder="Start Searching Here!"></input>
 			</form>
-
-
+			
+			<!--<div id="notfound"
+				data-bind="dialog: { autoOpen: false, modal: true title:'Not found!'}, template: { name: 'dialog-template', data: dialogItem, 'if': dialogItem }, openDialog: dialogItem }">
+				
+			</div>
+			<script id="dialog-template" type="text/html">
+				<span data-bind="text:message"></span>
+			</script>-->
+			
 			<aside>
 				<input id="filter" type="checkbox" name="within_results" value="within">Search within results</input>
 				<div id="results-box" data-bind="visible: true">
@@ -32,17 +39,29 @@
 
 					</div>-->
 
-
+					<div data-bind="if: screenPos">
 					<ul id="list" class="results-list" data-bind="foreach: filteredResults">
+						<li>
+							<div class="corner-info" data-bind="click: $parent.setFocus">
+								<span data-bind="text: shortened"></span>
+								<!--<p data-bind="text: formatted_address"></p>-->
+								<!--<p>Inspection Result: <span data-bind="text: grade"></span></p>-->
+							</div>
+						</li>
+					</ul>						
+					</div>
+					<div data-bind="ifnot: screenPos">
+						<ul id="list" class="results-list" data-bind="foreach: filteredResults">
 						<li>
 							<div class="corner-info" data-bind="click: $parent.setFocus">
 								<p data-bind="text: name"></p>
 								<p data-bind="text: formatted_address"></p>
-								<p>Inspection Result: <span data-bind="text: grade"></span></p>
+								<!--<p>Inspection Result: <span data-bind="text: grade"></span></p>-->
 							</div>
 						</li>
 					</ul>
-
+						
+					</div>
 				</div>
 			</aside>
 		</div>

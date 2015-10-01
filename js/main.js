@@ -10,6 +10,17 @@ function AppViewModel() {
     this.keyword = ko.observable('');
     this.resultsList = ko.observableArray();
     this.filterResults = ko.observableArray();
+    
+    // use computed function to determine whether screen is in portrait or landscape mode.
+    // this determines how results are displayed.
+    
+    this.screenPos = ko.computed(function() {
+        if(window.innerHeight > window.innerWidth || window.innerWidth < 700){
+           return true;
+        }
+        return false;
+    });
+    
     this.info = [];
     var self = this;
     
@@ -93,8 +104,9 @@ function AppViewModel() {
     // retrieve predictions from Google given query entered. Once 
     this.retrievePredictions = function (predictions, status) {
         //var self = this;
-        if (predictions === null && self.resultsList().length === 0) {
-            return "Nothing found!"; // -> pop up window instead to try another search
+            // && self.resultsList().length === 0
+        if (predictions.length === 0) {
+            self.noResults();
         } else {
             predictions.forEach(function (p) {
                 if (p.formatted_address.toLowerCase().indexOf('brooklyn,') > 0 || 
@@ -116,6 +128,7 @@ function AppViewModel() {
                 var promise = self.getSodaData(phone, info);
                     // if data request is succesful, check first two records for a grade rating
                     // need to refactor into a function that checks records until grade is found before returning 'No rating found.'
+                    info['shortened'] = info.name + ', ' + info.vicinity;
                     promise.success(function (data) {
                         if (data.length > 0 && data[0]['grade'] !== undefined) {
                             info['grade'] = data[0]['grade'];
@@ -175,9 +188,19 @@ function AppViewModel() {
         }
         return result;
     });
+    
+    // if no prediction results found.
     this.noResults = function() {
-        
-    }
+        console.log('test');
+    };
+    // this.screenPos = function() {
+    //     var pos = ko.observable(true);
+    //     if(window.innerHeight > window.innerWidth){
+    //         console.log(innerHeight);
+    //         pos = false;
+    //     }
+    //     return pos;
+    // }    
     // addMarker, called when updating predictions list. Will draw a marker on locations found. Clicking on Marker
     // will show name of restaurant in map infoWindow.
     this.addMarker = function (place) {
@@ -190,7 +213,7 @@ function AppViewModel() {
         place.marker.setMap(map);
                 
         google.maps.event.addListener(place.marker, 'click', function () {
-            infowindow.setContent('<h4 class="info-window-header">'+place.name+'</h4><div><p>'+place.formatted_address+'</p><p><h5>Rating: </h5>'+place.rating+'</p><p><h5>Food Grade: </h5>'+place.grade+'</p></div>');
+            infowindow.setContent('<h4 class="info-window-header">'+place.name+'</h4><div><p>'+place.vicinity+'</p><p><h5>User Rating: </h5>'+place.rating+'</p><p><h5>Food Inspection Grade: </h5>'+place.grade+'</p></div>');
             infowindow.open(map, this);
             map.panTo(place.marker.position);
             toggleBounce(place.marker);

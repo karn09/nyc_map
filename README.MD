@@ -15,4 +15,13 @@ Technologies used:
 * jQuery
 * NYC Open Data API
 
-In order to run, just open index.html!
+In order to use, open index.html. When you enter a query a list of restaurants with their addresses will be returned. 
+When clicking on the name of a restaurant the map will pan to the restaurant location causing an infowindow to open with 
+the following information:
+
+Name
+Location
+User Rating
+Food Inspection Rating
+
+The marker will also bounce until either a new restaurant is selected, or the infowindow is closed. 
