@@ -193,14 +193,7 @@ function AppViewModel() {
     this.noResults = function() {
         console.log('test');
     };
-    // this.screenPos = function() {
-    //     var pos = ko.observable(true);
-    //     if(window.innerHeight > window.innerWidth){
-    //         console.log(innerHeight);
-    //         pos = false;
-    //     }
-    //     return pos;
-    // }    
+
     // addMarker, called when updating predictions list. Will draw a marker on locations found. Clicking on Marker
     // will show name of restaurant in map infoWindow.
     this.addMarker = function (place) {
@@ -213,7 +206,9 @@ function AppViewModel() {
         place.marker.setMap(map);
                 
         google.maps.event.addListener(place.marker, 'click', function () {
-            infowindow.setContent('<h4 class="info-window-header">'+place.name+'</h4><div><p>'+place.vicinity+'</p><p><h5>User Rating: </h5>'+place.rating+'</p><p><h5>Food Inspection Grade: </h5>'+place.grade+'</p></div>');
+            infowindow.setContent('<h4 class="info-window-header">'+place.name+'</h4><div><p>'+place.vicinity+
+            '</p><p><h5>User Rating: </h5>'+place.rating+'</p><p><h5>Food Inspection Grade: </h5>'+place.grade+
+            '</p><p><a href='+place.website+'>'+place.website+'</a></p></div>');
             infowindow.open(map, this);
             map.panTo(place.marker.position);
             toggleBounce(place.marker);
