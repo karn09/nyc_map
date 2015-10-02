@@ -1,11 +1,11 @@
 /* global google */
 /* global ko */
 
-
+   var map, infowindow, nyc;
 function AppViewModel() {
     
     // set globals for access from within functions.
-    var map, infowindow, nyc;
+ //   var map, infowindow, nyc;
     var markers = [];
     this.keyword = ko.observable('');
     this.resultsList = ko.observableArray();
@@ -14,30 +14,30 @@ function AppViewModel() {
     // use computed function to determine whether screen is in portrait or landscape mode.
     // this determines how results are displayed.
     
-    this.screenPos = ko.computed(function() {
-        if(window.innerHeight > window.innerWidth || window.innerWidth < 700){
-           return true;
+    this.screenPos = ko.computed(function () {
+        if (window.innerHeight > window.innerWidth || window.innerWidth < 700) {
+            return true;
         }
         return false;
     });
-    
+
     this.info = [];
     var self = this;
     
     // setFocus, function called when place location in results list clicked. Will focus map to currently selected item.
     this.setFocus = function (obj) {
-        google.maps.event.trigger(obj.marker, 'click');    
+        google.maps.event.trigger(obj.marker, 'click');
     };
     
     // take into account various getAnimation status code, and set to bouncing. Otherwise stop bouncing.     
     function toggleBounce(marker) {
-        markers.forEach(function(marker){
+        markers.forEach(function (marker) {
             marker.setAnimation(null);
         });
         if (marker.getAnimation() === undefined || marker.getAnimation() === null) {
             marker.setAnimation(google.maps.Animation.BOUNCE);
-            
-        } 
+
+        }
     }
     
     // enterSearch, on 'enter' keypress, call this.search with query entered.
@@ -63,8 +63,8 @@ function AppViewModel() {
             new google.maps.LatLng(40.852167627881336, -73.92823830859368)
             );
             
-            // previously used AutocompleteService, turns out using PlacesService is much better.
-            // PlacesService returns more than 5 results at a time, and can be constrained based on place types.
+        // previously used AutocompleteService, turns out using PlacesService is much better.
+        // PlacesService returns more than 5 results at a time, and can be constrained based on place types.
         // var service = new google.maps.places.AutocompleteService({
         //     input: keyword,
         //     location: NYCbounds,
@@ -75,7 +75,7 @@ function AppViewModel() {
         // });
         
         var service = new google.maps.places.PlacesService(map);
-        
+
         if (map.zoom >= 18) {
             map.setZoom(12);
         }
@@ -89,13 +89,13 @@ function AppViewModel() {
             radius: '200',
             query: keyword
         };
-        
+
         service.textSearch(request, self.retrievePredictions);
-        
+
     };
     // clear all markers on map
-    this.clearMarkers = function() {
-        markers.forEach(function(marker) {
+    this.clearMarkers = function () {
+        markers.forEach(function (marker) {
             marker.setMap(null);
         });
         markers = [];
@@ -104,16 +104,16 @@ function AppViewModel() {
     // retrieve predictions from Google given query entered. Once 
     this.retrievePredictions = function (predictions, status) {
         //var self = this;
-            // && self.resultsList().length === 0
+        // && self.resultsList().length === 0
         if (predictions.length === 0) {
             self.noResults();
         } else {
             predictions.forEach(function (p) {
-                if (p.formatted_address.toLowerCase().indexOf('brooklyn,') > 0 || 
-                p.formatted_address.toLowerCase().indexOf('new york,') > 0) {
+                if (p.formatted_address.toLowerCase().indexOf('brooklyn,') > 0 ||
+                    p.formatted_address.toLowerCase().indexOf('new york,') > 0) {
                     self.getPlaceDetails(p.place_id);
                 }
-            });   
+            });
         }
     };
     
@@ -126,36 +126,36 @@ function AppViewModel() {
             if (status === google.maps.places.PlacesServiceStatus.OK) {
                 var phone = self.formatQueryForSODA(info.formatted_phone_number);
                 var promise = self.getSodaData(phone, info);
-                    // if data request is succesful, check first two records for a grade rating
-                    // need to refactor into a function that checks records until grade is found before returning 'No rating found.'
-                    info['shortened'] = info.name + ', ' + info.vicinity;
-                    promise.success(function (data) {
-                        if (data.length > 0 && data[0]['grade'] !== undefined) {
-                            info['grade'] = data[0]['grade'];
-                        } else if (data.length > 0 && data[1]['grade'] !== undefined) {
-                            info['grade'] = data[1]['grade'];  
-                        } else {
-                            info['grade'] = 'No Grade Found.';
-                        }
-                        
-                      
-                        console.log(info);
-                        self.resultsList.push(info);                        
-                        self.addMarker(info);
-                    });
-                    promise.error(function(data) {
-                        info['grade'] = 'Issue contacting server.';
-                        self.resultsList.push(info);                        
-                        self.addMarker(info);
-                    });
+                // if data request is succesful, check first two records for a grade rating
+                // need to refactor into a function that checks records until grade is found before returning 'No rating found.'
+                info['shortened'] = info.name + ', ' + info.vicinity;
+                promise.success(function (data) {
+                    if (data.length > 0 && data[0]['grade'] !== undefined) {
+                        info['grade'] = data[0]['grade'];
+                    } else if (data.length > 0 && data[1]['grade'] !== undefined) {
+                        info['grade'] = data[1]['grade'];
+                    } else {
+                        info['grade'] = 'No Grade Found.';
+                    }
+
+
+                    console.log(info);
+                    self.resultsList.push(info);
+                    self.addMarker(info);
+                });
+                promise.error(function (data) {
+                    info['grade'] = 'Issue contacting server.';
+                    self.resultsList.push(info);
+                    self.addMarker(info);
+                });
             }
         });
     };
             
     // search through current results, this doesn't actually do anything. this.service() calls this 
     // if checkbox is selected. 
-    this.filterService = function(keyword) {
-        return ko.observable(keyword);    
+    this.filterService = function (keyword) {
+        return ko.observable(keyword);
     };
     
     // this computes a new filteredResults list. If no filters currently set, then it will default to resultsList()
@@ -190,7 +190,7 @@ function AppViewModel() {
     });
     
     // if no prediction results found.
-    this.noResults = function() {
+    this.noResults = function () {
         console.log('test');
     };
 
@@ -202,19 +202,19 @@ function AppViewModel() {
             position: place.geometry.location
         });
         markers.push(place.marker);
-        
+
         place.marker.setMap(map);
-                
+
         google.maps.event.addListener(place.marker, 'click', function () {
-            infowindow.setContent('<h4 class="info-window-header">'+place.name+'</h4><div><p>'+place.vicinity+
-            '</p><p><h5>User Rating: </h5>'+place.rating+'</p><p><h5>Food Inspection Grade: </h5>'+place.grade+
-            '</p><p><a href='+place.website+'>'+place.website+'</a></p></div>');
+            infowindow.setContent('<h4 class="info-window-header">' + place.name + '</h4><div><p>' + place.vicinity +
+                '</p><p><h5>User Rating: </h5>' + place.rating + '</p><p><h5>Food Inspection Grade: </h5>' + place.grade +
+                '</p><p><a href=' + place.website + '>' + place.website + '</a></p></div>');
             infowindow.open(map, this);
             map.panTo(place.marker.position);
             toggleBounce(place.marker);
         });
         // add additional listener to infowindow to reset marker animations when window closed.
-        google.maps.event.addListener(infowindow,'closeclick',function(){
+        google.maps.event.addListener(infowindow, 'closeclick', function () {
             place.marker.setAnimation(null);
         });
     };
@@ -230,9 +230,9 @@ function AppViewModel() {
             mapTypeControl: false
         });
         var input = document.getElementById('pac-input');
-      
+
         map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-       
+
         infowindow = new google.maps.InfoWindow({
             maxWidth: 300
         });
@@ -266,18 +266,14 @@ function AppViewModel() {
             url: query,
             dataType: 'json',
             error: function () {
-               return "Issue loading data.";
+                return "Issue loading data.";
             },
             complete: function (data, status) {
                 console.log(status);
             }
         });
     };
-
     // Initialize map. 
     initializeMap();
+
 }
-
-
-
-ko.applyBindings(new AppViewModel());
