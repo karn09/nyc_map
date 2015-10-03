@@ -1,19 +1,21 @@
 /* global google */
 /* global ko */
+var map, infowindow, nyc;
 
-   var map, infowindow, nyc;
 function AppViewModel() {
-    
+
     // set globals for access from within functions.
- //   var map, infowindow, nyc;
+    //   var map, infowindow, nyc;
     var markers = [];
     this.keyword = ko.observable('');
     this.resultsList = ko.observableArray();
     this.filterResults = ko.observableArray();
-    
+    //this.info = [];
+    var self = this;
+
     // use computed function to determine whether screen is in portrait or landscape mode.
     // this determines how results are displayed.
-    
+
     this.screenPos = ko.computed(function () {
         if (window.innerHeight > window.innerWidth || window.innerWidth < 700) {
             return true;
@@ -21,14 +23,11 @@ function AppViewModel() {
         return false;
     });
 
-    this.info = [];
-    var self = this;
-    
     // setFocus, function called when place location in results list clicked. Will focus map to currently selected item.
     this.setFocus = function (obj) {
         google.maps.event.trigger(obj.marker, 'click');
     };
-    
+
     // take into account various getAnimation status code, and set to bouncing. Otherwise stop bouncing.     
     function toggleBounce(marker) {
         markers.forEach(function (marker) {
@@ -39,30 +38,30 @@ function AppViewModel() {
 
         }
     }
-    
+
     // enterSearch, on 'enter' keypress, call this.search with query entered.
     this.enterSearch = function (d, e) {
-        e.keyCode === 13 && this.search();
+        e.keyCode === 13 && self.search();
         return true;
     };
-    
+
     // called from enterSearch, pass keyword to searchService
     this.search = function () {
         var checkbox = $('input[type="checkbox"][name="within_results"]');
-        if (checkbox.prop("checked") === true && this.resultsList().length > 0) {
-            this.filterService(this.keyword());
+        if (checkbox.prop("checked") === true && self.resultsList().length > 0) {
+            self.filterService(self.keyword());
         } else if (checkbox.prop("checked") === false) {
-            this.searchService(this.keyword());
+            self.searchService(self.keyword());
         }
     };
-    
+
     // searchService, initialize AutocompleteService, reset map, and clear results and markers. Call retrievePredictions.
     this.searchService = function (keyword) {
         var NYCbounds = new google.maps.LatLngBounds(
             new google.maps.LatLng(40.70213498801132, -74.02151065429689),
             new google.maps.LatLng(40.852167627881336, -73.92823830859368)
-            );
-            
+        );
+
         // previously used AutocompleteService, turns out using PlacesService is much better.
         // PlacesService returns more than 5 results at a time, and can be constrained based on place types.
         // var service = new google.maps.places.AutocompleteService({
@@ -73,7 +72,7 @@ function AppViewModel() {
         //     types: ['geocode'],
         //     componentRestrictions: { country: 'us' }
         // });
-        
+
         var service = new google.maps.places.PlacesService(map);
 
         if (map.zoom >= 18) {
@@ -100,7 +99,7 @@ function AppViewModel() {
         });
         markers = [];
     };
-    
+
     // retrieve predictions from Google given query entered. Once 
     this.retrievePredictions = function (predictions, status) {
         //var self = this;
@@ -116,7 +115,7 @@ function AppViewModel() {
             });
         }
     };
-    
+
     // call PlacesServices from Maps API to gather additional formatted information about locations. 
     this.getPlaceDetails = function (id) {
         var service = new google.maps.places.PlacesService(map);
@@ -130,18 +129,27 @@ function AppViewModel() {
                 // need to refactor into a function that checks records until grade is found before returning 'No rating found.'
                 info['shortened'] = info.name + ', ' + info.vicinity;
                 promise.success(function (data) {
-                    if (data.length > 0 && data[0]['grade'] !== undefined) {
-                        info['grade'] = data[0]['grade'];
-                    } else if (data.length > 0 && data[1]['grade'] !== undefined) {
-                        info['grade'] = data[1]['grade'];
-                    } else {
-                        info['grade'] = 'No Grade Found.';
+
+                    if (data.length > 0) {
+                        // if (data[0]['grade'] !== undefined) {
+                        //     info['grade'] = data[0]['grade'];
+                        // } else if (data[1]['grade'] !== undefined) {
+                        //     info['grade'] = data[1]['grade'];
+                        // } else {
+                        //     info['grade'] = data[2]['grade'];
+                        // }
+
+                        var grade = data.reduce(function (obj) {
+                            if (obj.grade) {
+                                return obj;
+                            }
+                        });
+
+                        console.log(grade);
+                        info['grade'] = grade['grade'];
+                        self.resultsList.push(info);
+                        self.addMarker(info);
                     }
-
-
-                    console.log(info);
-                    self.resultsList.push(info);
-                    self.addMarker(info);
                 });
                 promise.error(function (data) {
                     info['grade'] = 'Issue contacting server.';
@@ -151,24 +159,24 @@ function AppViewModel() {
             }
         });
     };
-            
+
     // search through current results, this doesn't actually do anything. this.service() calls this 
     // if checkbox is selected. 
     this.filterService = function (keyword) {
         return ko.observable(keyword);
     };
-    
+
     // this computes a new filteredResults list. If no filters currently set, then it will default to resultsList()
     // method below is slightly re-worked from http://jsfiddle.net/Lzud7fjr/1/
-    self.filteredResults = ko.computed(function () {
+    this.filteredResults = ko.computed(function () {
         var result;
         self.columns = ko.observableArray([{
             value: 'formatted_address'
         }, {
-                value: 'name'
-            }, {
-                value: 'grade'
-            }]);
+            value: 'name'
+        }, {
+            value: 'grade'
+        }]);
         if (self.keyword().length >= 0 && $('input[type="checkbox"][name="within_results"]').prop("checked") === false) {
             result = self.resultsList();
         } else if ($('input[type="checkbox"][name="within_results"]').prop("checked") === true) {
@@ -188,7 +196,7 @@ function AppViewModel() {
         }
         return result;
     });
-    
+
     // if no prediction results found.
     this.noResults = function () {
         console.log('test');
@@ -237,7 +245,7 @@ function AppViewModel() {
             maxWidth: 300
         });
     }
-    
+
     // formatQueryForSODA, this function formats the search query using the provided phone number from Google prediction
     // service. Using regex, removes characters and properly formats the phone number so it can be later be found via NYC Open Data API.
     this.formatQueryForSODA = function (query) {
@@ -253,7 +261,7 @@ function AppViewModel() {
         } else
             return null;
     };
-    
+
     // getSodaData, this function passes to the NYC Open Data API a phone number in order to return food grade info.
     // I chose to use the phone number instead of the address or name because of many variations in formatting and recorded info.
     // The phone number was more constant.
