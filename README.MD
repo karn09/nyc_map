@@ -26,3 +26,6 @@ Food Inspection Rating
 Website 
 
 The marker will also bounce until either a new restaurant is selected, or the infowindow is closed. 
+
+Check it out!
+https://htmlpreview.github.io/?https://github.com/karn09/nyc_map/blob/master/index.html
