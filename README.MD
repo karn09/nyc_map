@@ -30,6 +30,7 @@ Website
 
 
 Check it out!
-https://htmlpreview.github.io/?https://github.com/karn09/nyc_map/blob/master/index.html
+[Neighborhood Map Preview](https://htmlpreview.github.io/?https://github.com/karn09/nyc_map/blob/master/index.html)
+
 
 
