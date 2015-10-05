@@ -10,12 +10,10 @@ function AppViewModel() {
     this.keyword = ko.observable('');
     this.resultsList = ko.observableArray();
     this.filterResults = ko.observableArray();
-    //this.info = [];
     var self = this;
-
+    
     // use computed function to determine whether screen is in portrait or landscape mode.
     // this determines how results are displayed.
-
     this.screenPos = ko.computed(function () {
         if (window.innerHeight > window.innerWidth || window.innerWidth < 700) {
             return true;
@@ -62,17 +60,6 @@ function AppViewModel() {
             new google.maps.LatLng(40.852167627881336, -73.92823830859368)
         );
 
-        // previously used AutocompleteService, turns out using PlacesService is much better.
-        // PlacesService returns more than 5 results at a time, and can be constrained based on place types.
-        // var service = new google.maps.places.AutocompleteService({
-        //     input: keyword,
-        //     location: NYCbounds,
-        //     bounds: NYCbounds,
-        //     radius: 7000,
-        //     types: ['geocode'],
-        //     componentRestrictions: { country: 'us' }
-        // });
-
         var service = new google.maps.places.PlacesService(map);
 
         if (map.zoom >= 18) {
@@ -102,8 +89,6 @@ function AppViewModel() {
 
     // retrieve predictions from Google given query entered. Once 
     this.retrievePredictions = function (predictions, status) {
-        //var self = this;
-        // && self.resultsList().length === 0
         if (predictions.length === 0) {
             self.noResults();
         } else {
@@ -127,37 +112,36 @@ function AppViewModel() {
                 var promise = self.getSodaData(phone, info);
                 // if data request is succesful, check first two records for a grade rating
                 // need to refactor into a function that checks records until grade is found before returning 'No rating found.'
-                info['shortened'] = info.name + ', ' + info.vicinity;
+                info.shortened = info.name + ', ' + info.vicinity;
                 promise.success(function (data) {
 
                     if (data.length > 0) {
-                        // if (data[0]['grade'] !== undefined) {
-                        //     info['grade'] = data[0]['grade'];
-                        // } else if (data[1]['grade'] !== undefined) {
-                        //     info['grade'] = data[1]['grade'];
-                        // } else {
-                        //     info['grade'] = data[2]['grade'];
-                        // }
-
-                        var grade = data.reduce(function (obj) {
-                            if (obj.grade) {
-                                return obj;
-                            }
-                        });
-
-                        console.log(grade);
-                        info['grade'] = grade['grade'];
+                        // previously I was taking the first few array indices to try and find an item which has a grade
+                        // instead I created a function that will travel each item until it finds the first with a grade and return the grade.
+                        var grade = self.findTopLevelGrade(data);
+                        info.grade = grade;
                         self.resultsList.push(info);
                         self.addMarker(info);
                     }
                 });
                 promise.error(function (data) {
-                    info['grade'] = 'Issue contacting server.';
+                    info.grade = 'Issue contacting server.';
                     self.resultsList.push(info);
                     self.addMarker(info);
                 });
             }
         });
+    };
+    
+    this.findTopLevelGrade = function (grades) {
+        var graded = '';
+        for (var key in grades) {
+            if (grades[key].grade) {
+                graded = grades[key].grade;
+                break;
+            }
+        }
+        return graded;
     };
 
     // search through current results, this doesn't actually do anything. this.service() calls this 
@@ -181,7 +165,7 @@ function AppViewModel() {
             result = self.resultsList();
         } else if ($('input[type="checkbox"][name="within_results"]').prop("checked") === true) {
             // set new result based on filtering query. 
-            // TODO: remove map markers dynamically.
+            // TODO: remove/add map markers dynamically as results search used
             result = ko.utils.arrayFilter(self.resultsList(), function (item) {
                 var matching = -1;
                 ko.utils.arrayForEach(self.columns(), function (c) {
@@ -199,7 +183,7 @@ function AppViewModel() {
 
     // if no prediction results found.
     this.noResults = function () {
-        console.log('test');
+        console.log('No results found');
     };
 
     // addMarker, called when updating predictions list. Will draw a marker on locations found. Clicking on Marker
@@ -275,9 +259,6 @@ function AppViewModel() {
             dataType: 'json',
             error: function () {
                 return "Issue loading data.";
-            },
-            complete: function (data, status) {
-                console.log(status);
             }
         });
     };

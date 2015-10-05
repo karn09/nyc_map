@@ -3,8 +3,11 @@ Goal: In this project I used the Google Maps API to enable me to search restaura
 return inspection letter grades from the NYC Open Data API. 
 
 Results are restricted to NY. Results will be returned in right hand panel. You can also further 
-filter within results by selecting checkbox and re-entering a search query. If there is no inspection grade,
-results will be returned from Maps API only. 
+filter within results by selecting checkbox and re-entering a search query. 
+
+The marker will also bounce until either a new restaurant is selected, or the infowindow is closed. If no grades are found, results 
+are not returned. I found that the maps api inconsistently returned correct results with restrictions in place due to miscategorized
+businnesses. 
 
 More information about NYC inspection letter grading system can be found here:
 http://www.ehagroup.com/food-safety/new-york-abc-restaurant-grading/
@@ -25,7 +28,8 @@ User Rating
 Food Inspection Rating
 Website 
 
-The marker will also bounce until either a new restaurant is selected, or the infowindow is closed. 
 
 Check it out!
 https://htmlpreview.github.io/?https://github.com/karn09/nyc_map/blob/master/index.html
+
+

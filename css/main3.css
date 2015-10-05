@@ -1,35 +1,42 @@
 /* border-sizing */
 html {
-  box-sizing: border-box;
-}
-*, *:before, *:after {
-  box-sizing: inherit;
+    box-sizing: border-box;
 }
 
+*,
+*:before,
+*:after {
+    box-sizing: inherit;
+}
+
+
 /* common elements */
-html, body, .wrap {
-  height: 100%;
-  margin: 0;
-  width: 100%;
+html,
+body,
+.wrap {
+    height: 100%;
+    margin: 0;
+    width: 100%;
 }
 
 
 /* side bar */
 aside {
-  background: rgba(0,0,0,0.75);
-  color: white;
-  margin: 0;
-  padding: 8px;
-  position: absolute;
-  width: 300px;
+    background: rgba(0, 0, 0, 0.75);
+    color: white;
+    margin: 0;
+    padding: 8px;
+    position: absolute;
+    width: 300px;
 }
 
 aside {
-  height: 100%;
-  overflow: auto;
-  top: 0;
-  right: 0;
+    height: 100%;
+    overflow: auto;
+    top: 0;
+    right: 0;
 }
+
 
 /* search */
 #pac-input {
@@ -44,116 +51,113 @@ aside {
     margin-top: 2%;
 }
 
+
 /* filter button */
-#filter {
-  margin-left: 1%;
-  margin-top: 2%;
-  background-color: white;
+.filter {
+    margin-left: 1%;
+    margin-top: 2%;
+    background-color: white;
 }
+
+
 /* list */
-#list {
-  padding: 0;
+.list ul {
+    padding: 0;
 }
 
-#list li {
-  font-size: 16px;
-  list-style-type: none;
-  padding: 8px;
+.list ul li {
+    font-size: 16px;
+    list-style-type: none;
+    padding: 8px;
 }
 
-#list li:hover {
-  cursor: pointer;
-  color: black;
-  background: #E44E49;
+.list ul li:hover {
+    cursor: pointer;
+    color: black;
+    background: #E44E49;
 }
+
 
 /* map canvas */
 #map-canvas {
-  height: 100%;
-  width: 100%;
+    height: 100%;
+    width: 100%;
 }
 
 .info-window-header {
-  font-weight: bold;
+    font-weight: bold;
 }
+
+
 /* Landscape */
-@media only screen 
-  and (min-device-width: 200px) 
-  and (max-device-width: 850px)
-  and (-webkit-min-device-pixel-ratio: 2)
-  and (orientation: landscape) {
-  #map-canvas, .wrap {
-    position: absolute;
-    left: 0;
-    height: 83%;
-    bottom: 0;
-  }
-  .mobile-container {
-    box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    background: blue;
-    position: fixed;
-    height: 30%;
-    width: 100%;
-    overflow: hidden;
-    top: 0;
-    left: 0;
-  }
-  aside {
-    height: 100%;
-    position: static;
-    left: 0;
-    top: 100px;
-    width: 100%;
-  }
-#list li {
-  font-size: 16px;
-  list-style-type: none;
-  padding: 2px;
+@media only screen and (min-device-width: 200px) and (max-device-width: 850px) and (orientation: landscape) {
+    #map-canvas,
+    .wrap {
+        position: absolute;
+        left: 0;
+        height: 83%;
+        bottom: 0;
+    }
+    
+    .mobile-container {
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        background: blue;
+        position: fixed;
+        height: 30%;
+        width: 100%;
+        overflow: hidden;
+        top: 0;
+        left: 0;
+    }
+    
+    aside {
+        height: 100%;
+        position: static;
+        left: 0;
+        top: 100px;
+        width: 100%;
+    }
+    
+    .list ul li {
+        font-size: 16px;
+        list-style-type: none;
+        padding: 2px;
+    }
 }
 
 
-
-}
 /* Portrait */
-@media only screen 
-  and (min-device-width: 320px) 
-  and (max-device-width: 600px)
-  and (-webkit-min-device-pixel-ratio: 2)
-  and (orientation: portrait) {
-
-  #map-canvas, .wrap {
-    position: absolute;
-    left: 0;
-    height: 89.5%;
-    bottom: 0;
-  }
-  .mobile-container {
-    box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    background: blue;
-    position: fixed;
-    height: 20%;
-    width: 100%;
-    overflow: hidden;
-    top: 0;
-    left: 0;
-  }
-  aside {
-    height: 100%;
-    position: static;
-    left: 0;
-    top: 100px;
-    width: 100%;
-  }
-#list li {
-  font-size: 14px;
-  list-style-type: none;
-  padding: 2px;
-}
-
-
-
-}
-
-/* info window */
-@media only screen and (max-width: 700px) {
+@media only screen and (min-device-width: 320px) and (max-device-width: 600px) and (orientation: portrait) {
+    #map-canvas,
+    .wrap {
+        position: absolute;
+        left: 0;
+        height: 89.5%;
+        bottom: 0;
+    }
+    
+    .mobile-container {
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        background: blue;
+        position: fixed;
+        height: 20%;
+        width: 100%;
+        overflow: hidden;
+        top: 0;
+        left: 0;
+    }
+    
+    aside {
+        height: 100%;
+        position: static;
+        left: 0;
+        top: 100px;
+        width: 100%;
+    }
+    
+    .list ul li {
+        font-size: 14px;
+        list-style-type: none;
+        padding: 2px;
+    }
 }
